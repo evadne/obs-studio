@@ -1380,6 +1380,31 @@ void obs_shutdown(void)
 
 	obs_wait_for_destroy_queue();
 
+	stop_video();
+	stop_audio();
+	stop_hotkeys();
+
+	module = obs->first_module;
+	while (module) {
+		struct obs_module *next = module->next;
+		free_module(module);
+		module = next;
+	}
+	obs->first_module = NULL;
+
+	module = obs->first_disabled_module;
+	while (module) {
+		struct obs_module *next = module->next;
+		free_module(module);
+		module = next;
+	}
+	obs->first_disabled_module = NULL;
+
+	obs_free_data();
+
+	/* Each object holds a copy of its type's info, whose id and type data
+	 * belong to the registration, and obs_free_data destroys the objects
+	 * that remain, so the registrations are freed only after it. */
 	for (size_t i = 0; i < obs->source_types.num; i++) {
 		struct obs_source_info *item = &obs->source_types.array[i];
 		if (item->type_data && item->free_type_data)
@@ -1409,27 +1434,6 @@ void obs_shutdown(void)
 	da_free(obs->filter_types);
 	da_free(obs->transition_types);
 
-	stop_video();
-	stop_audio();
-	stop_hotkeys();
-
-	module = obs->first_module;
-	while (module) {
-		struct obs_module *next = module->next;
-		free_module(module);
-		module = next;
-	}
-	obs->first_module = NULL;
-
-	module = obs->first_disabled_module;
-	while (module) {
-		struct obs_module *next = module->next;
-		free_module(module);
-		module = next;
-	}
-	obs->first_disabled_module = NULL;
-
-	obs_free_data();
 	obs_free_audio();
 	obs_free_video();
 	os_task_queue_destroy(obs->destruction_task_thread);
