@@ -1050,6 +1050,12 @@ static void obs_free_data(void)
 	/* Free main canvas */
 	obs_canvas_release(data->main_canvas);
 
+	/* Releasing the main canvas destroys its scenes, whose deferred
+	 * destruction releases the sources in them. Wait for it, so that only
+	 * the sources nothing released are destroyed below, and not while the
+	 * destruction thread is still releasing them. */
+	os_task_queue_wait(obs->destruction_task_thread);
+
 	FREE_OBS_LINKED_LIST(output);
 	FREE_OBS_LINKED_LIST(encoder);
 	FREE_OBS_LINKED_LIST(display);
