@@ -248,7 +248,7 @@ struct os_inhibit_info {
 os_inhibit_t *os_inhibit_sleep_create(const char *reason)
 {
     struct os_inhibit_info *info = bzalloc(sizeof(*info));
-    if (!reason)
+    if (reason)
         info->reason = CFStringCreateWithCString(kCFAllocatorDefault, reason, kCFStringEncodingUTF8);
     else
         info->reason = CFStringCreateCopy(kCFAllocatorDefault, CFSTR(""));
